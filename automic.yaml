@@ -1,0 +1,11 @@
+projects:
+  - name: ProjectA
+    variables:
+      DB_HOST: db.projecta.local
+      DB_USER: userA
+      DB_PASS: passA
+  - name: ProjectB
+    variables:
+      DB_HOST: db.projectb.local
+      DB_USER: userB
+      DB_PASS: passB
