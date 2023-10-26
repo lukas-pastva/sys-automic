@@ -15,6 +15,13 @@ get_project_variable() {
 }
 
 # Functions for interacting with the Automic API
+check_environment_exists() {
+  local project_name="$1"
+  # This curl command should check if the environment exists and return an appropriate exit code
+  # The exact curl command and URL will depend on the Automic API's capabilities
+  curl -X GET "$AUTOMIC_API_BASE_URL/environment/$project_name" &> /dev/null
+}
+
 insert_environment() {
   local data="$1"
   curl -X POST "$AUTOMIC_API_BASE_URL/environment" -H "Content-Type: application/json" -d "$data"
@@ -26,54 +33,24 @@ update_environment() {
   curl -X PUT "$AUTOMIC_API_BASE_URL/environment/$id" -H "Content-Type: application/json" -d "$data"
 }
 
-delete_environment() {
-  local id="$1"
-  curl -X DELETE "$AUTOMIC_API_BASE_URL/environment/$id"
-}
-
-# Main function for CRUD operations on environments and their variables
+# Main function to manage environments
 manage_environments() {
-  local action="$1"
-
   for project in $(get_projects); do
     echo "Project: $project"
 
-    for variable in $(yq e ".projects[] | select(.name == \"$project\") | .variables | keys[]" "$YAML_FILE"); do
-      value=$(get_project_variable "$project" "$variable")
-      echo "  $variable = $value"
-
-      case "$action" in
-        insert)
-          # Call the Automic API to insert environment and its variables...
-          insert_environment "{...}"  # Adapt this line accordingly
-          ;;
-        update)
-          # Call the Automic API to update environment and its variables...
-          update_environment "ID_HERE" "{...}"  # Adapt this line accordingly
-          ;;
-        delete)
-          # Call the Automic API to delete environment and its variables...
-          delete_environment "ID_HERE"  # Adapt this line accordingly
-          ;;
-      esac
-    done
+    if check_environment_exists "$project"; then
+      echo "Environment for $project exists. Updating..."
+      # Build your data JSON structure for the update here
+      # Then call the update_environment function
+      # update_environment "ID_HERE" "{...}"  # Adapt this line accordingly
+    else
+      echo "Environment for $project does not exist. Inserting..."
+      # Build your data JSON structure for the insert here
+      # Then call the insert_environment function
+      # insert_environment "{...}"  # Adapt this line accordingly
+    fi
   done
 }
 
 # Entry point of the script
-if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 {insert|update|delete}"
-  exit 1
-fi
-
-command="$1"
-
-case "$command" in
-  insert|update|delete)
-    manage_environments "$command"
-    ;;
-  *)
-    echo "Unknown command: $command"
-    exit 1
-    ;;
-esac
+manage_environments
